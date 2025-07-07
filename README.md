@@ -59,6 +59,13 @@ mvn spring-boot:run
 4. Accéder à l'interface
 Ouvre ton navigateur sur http://localhost:8080/chatroom
 
+✨ Démo visuelle
+![image](https://github.com/user-attachments/assets/e7ce4c7c-b49a-4058-b773-7a8c20cdfe70)
+![image](https://github.com/user-attachments/assets/cb062198-4846-4902-8722-c07e6c3fcefa)
+![Uploading image.png…]()
+
+
+
 
 👨‍💻 Auteur
 Projet réalisé par Mohammed Yasser Rachih – Étudiant en Master Big Data & Data Science.
