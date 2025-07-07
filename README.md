@@ -33,16 +33,24 @@ chatroom/
 │   ├── main/
 │   │   ├── java/com/chatroom/
 │   │   │   ├── ChatroomApplication.java
-│   │   │   ├── controller/ChatController.java
-│   │   │   ├── model/Message.java
-│   │   │   ├── repository/MessageRepository.java
-│   │   │   ├── payload/TypingPayload.java
-│   │   │   └── service/OnlineUserService.java
+│   │   │   ├── controller/
+│   │   │   │   └── ChatController.java
+│   │   │   ├── model/
+│   │   │   │   └── Message.java
+│   │   │   ├── repository/
+│   │   │   │   └── MessageRepository.java
+│   │   │   ├── payload/
+│   │   │   │   └── TypingPayload.java
+│   │   │   └── service/
+│   │   │       └── OnlineUserService.java
 │   │   └── resources/
-│   │       ├── templates/chatroom.html
-│   │       ├── static/css/chatroom.css
+│   │       ├── templates/
+│   │       │   └── chatroom.html
+│   │       ├── static/css/
+│   │       │   └── chatroom.css
 │   │       └── application.properties
-└── pom.xml
+├── pom.xml
+
 
 
 ## ⚙️ Configuration MongoDB
