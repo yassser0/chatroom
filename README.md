@@ -29,44 +29,20 @@ Ce projet est une application de **chat public anonyme en temps réel**, dévelo
 ## 📁 Structure du projet
 
 chatroom/
-├── README.md                  
-├── pom.xml                    
-├── mvnw                       
-├── mvnw.cmd
-├── .gitignore
-├── .gitattributes
-├── .vscode/                   
-│   └── settings.json
 ├── src/
 │   ├── main/
-│   │   ├── java/
-│   │   │   └── com/
-│   │   │       └── chatroom/
-│   │   │           ├── ChatroomApplication.java
-│   │   │           ├── config/
-│   │   │           ├── controller/
-│   │   │           │   └── ChatController.java
-│   │   │           ├── model/
-│   │   │           │   └── Message.java
-│   │   │           ├── payload/
-│   │   │           │   ├── TypingPayload.java
-│   │   │           │   └── UserCountPayload.java
-│   │   │           ├── repository/
-│   │   │           │   └── MessageRepository.java
-│   │   │           └── service/
-│   │   │               └── OnlineUserService.java
+│   │   ├── java/com/chatroom/
+│   │   │   ├── ChatroomApplication.java
+│   │   │   ├── controller/ChatController.java
+│   │   │   ├── model/Message.java
+│   │   │   ├── repository/MessageRepository.java
+│   │   │   ├── payload/TypingPayload.java
+│   │   │   └── service/OnlineUserService.java
 │   │   └── resources/
-│   │       ├── static/
-│   │       │   └── css/
-│   │       │       └── chatroom.css
-│   │       ├── templates/
-│   │       │   └── chatroom.html
+│   │       ├── templates/chatroom.html
+│   │       ├── static/css/chatroom.css
 │   │       └── application.properties
-│
-│
-│
-├── src/test/java/com/chatroom/
-│   └── ChatroomApplicationTests.java
+└── pom.xml
 
 
 ## ⚙️ Configuration MongoDB
