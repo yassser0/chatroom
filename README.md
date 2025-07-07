@@ -69,7 +69,7 @@ spring.thymeleaf.suffix=.html
 ▶️ Lancer l'application 
 
 1. Cloner le projet : 
-git clone https://github.com/ton-utilisateur/chatroom.git
+git clone https://github.com/yassser0/chatroom.git
 cd chatroom
 
 2. Lancer MongoDB (en local) : 
