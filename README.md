@@ -29,20 +29,45 @@ Ce projet est une application de **chat public anonyme en temps réel**, dévelo
 ## 📁 Structure du projet
 
 chatroom/
+├── README.md                  
+├── pom.xml                    
+├── mvnw                       
+├── mvnw.cmd
+├── .gitignore
+├── .gitattributes
+├── .vscode/                   
+│   └── settings.json
 ├── src/
-│ ├── main/
-│ │ ├── java/com/chatroom/
-│ │ │ ├── ChatroomApplication.java
-│ │ │ ├── controller/ChatController.java
-│ │ │ ├── model/Message.java
-│ │ │ ├── repository/MessageRepository.java
-│ │ │ ├── payload/TypingPayload.java
-│ │ │ └── service/OnlineUserService.java
-│ │ └── resources/
-│ │ ├── templates/chatroom.html
-│ │ ├── static/css/chatroom.css
-│ │ └── application.properties
-└── pom.xml
+│   ├── main/
+│   │   ├── java/
+│   │   │   └── com/
+│   │   │       └── chatroom/
+│   │   │           ├── ChatroomApplication.java
+│   │   │           ├── config/
+│   │   │           ├── controller/
+│   │   │           │   └── ChatController.java
+│   │   │           ├── model/
+│   │   │           │   └── Message.java
+│   │   │           ├── payload/
+│   │   │           │   ├── TypingPayload.java
+│   │   │           │   └── UserCountPayload.java
+│   │   │           ├── repository/
+│   │   │           │   └── MessageRepository.java
+│   │   │           └── service/
+│   │   │               └── OnlineUserService.java
+│   │   └── resources/
+│   │       ├── static/
+│   │       │   └── css/
+│   │       │       └── chatroom.css
+│   │       ├── templates/
+│   │       │   └── chatroom.html
+│   │       └── application.properties
+│
+│
+│
+├── src/test/java/com/chatroom/
+│   └── ChatroomApplicationTests.java
+
 
 ## ⚙️ Configuration MongoDB
 
@@ -72,10 +97,6 @@ mvn spring-boot:run
 4. Accéder à l'interface
 Ouvre ton navigateur sur http://localhost:8080/chatroom
 
-✨ Démo visuelle 
-![alt text](image.png)
-![alt text](image-1.png)
-![alt text](image-2.png)
 
 👨‍💻 Auteur
 Projet réalisé par Mohammed Yasser Rachih – Étudiant en Master Big Data & Data Science.
