@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Public Anonyme</title>
+    <link rel="stylesheet" th:href="@{/css/chatroom.css}">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Indicateur de connexion -->
+        <div class="connection-status connecting" id="connectionStatus">
+            Connexion...
+        </div>
+
+        <!-- Écran de connexion -->
+        <div class="login-screen" id="loginScreen">
+            <div class="login-card">
+                <h1>💬 Chat Public</h1>
+                <p>Rejoignez la conversation anonymement</p>
+                <input type="text" 
+                       class="pseudo-input" 
+                       id="pseudoInput" 
+                       placeholder="Entrez votre pseudo..." 
+                       maxlength="20"
+                       autocomplete="off">
+                <button class="join-button" id="joinButton" disabled>
+                    Rejoindre le Chat
+                </button>
+            </div>
+        </div>
+
+        <!-- Interface de chat -->
+        <div class="chat-interface" id="chatInterface">
+            <div class="chat-header">
+                <div class="chat-title">
+                    <h1>💬 Chat Public</h1>
+                </div>
+                <div class="user-info">
+                    <div class="current-user" id="currentUser">
+                        Vous: <span id="userPseudo"></span>
+                    </div>
+                    <div class="online-count">
+                        <span class="online-dot"></span>
+                        <span id="onlineCount">0</span> en ligne
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-messages" id="messages">
+                <div class="system-message">
+                    Bienvenue dans le chat public ! Soyez respectueux 🙂
+                </div>
+            </div>
+
+            <div class="typing-indicator" id="typingIndicator">
+                <span id="typingUsers"></span>
+                <span class="typing-dots"></span>
+                <span class="typing-dots"></span>
+                <span class="typing-dots"></span>
+            </div>
+
+            <div class="chat-input">
+                <div class="input-container">
+                    <input type="text" 
+                           class="message-input" 
+                           id="messageInput" 
+                           placeholder="Tapez votre message..." 
+                           maxlength="500"
+                           autocomplete="off">
+                </div>
+                <button class="send-button" id="sendButton" disabled>
+                    <span>Envoyer</span>
+                    <span>➤</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <script>
+        // Variables globales
+        let stompClient = null;
+        let currentUser = null;
+        let typingTimer = null;
+        let isTyping = false;
+
+        // Éléments du DOM
+        const loginScreen = document.getElementById('loginScreen');
+        const chatInterface = document.getElementById('chatInterface');
+        const pseudoInput = document.getElementById('pseudoInput');
+        const joinButton = document.getElementById('joinButton');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const messagesContainer = document.getElementById('messages');
+        const connectionStatus = document.getElementById('connectionStatus');
+        const userPseudo = document.getElementById('userPseudo');
+        const onlineCount = document.getElementById('onlineCount');
+        const typingIndicator = document.getElementById('typingIndicator');
+        const typingUsers = document.getElementById('typingUsers');
+
+        // Gestion du pseudo
+        pseudoInput.addEventListener('input', function() {
+            const pseudo = this.value.trim();
+            joinButton.disabled = pseudo.length < 2;
+        });
+
+        pseudoInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !joinButton.disabled) {
+                joinChat();
+            }
+        });
+
+        joinButton.addEventListener('click', joinChat);
+
+        // Rejoindre le chat
+        function joinChat() {
+            const pseudo = pseudoInput.value.trim();
+            if (pseudo.length < 2) return;
+
+            currentUser = pseudo;
+            userPseudo.textContent = pseudo;
+            
+            // Masquer l'écran de connexion et afficher le chat
+            loginScreen.style.display = 'none';
+            chatInterface.style.display = 'flex';
+            
+            // Connecter au WebSocket
+            connectWebSocket();
+        }
+
+        // Connexion WebSocket
+        function connectWebSocket() {
+            updateConnectionStatus('connecting');
+            
+            const socket = new SockJS('/ws');
+            stompClient = Stomp.over(socket);
+            
+            stompClient.connect({}, function(frame) {
+                updateConnectionStatus('connected');
+                console.log('Connecté: ' + frame);
+                
+                // S'abonner aux messages
+                stompClient.subscribe('/topic/messages', function(message) {
+                    const messageData = JSON.parse(message.body);
+                    displayMessage(messageData);
+                });
+                
+                // S'abonner aux utilisateurs en ligne
+                stompClient.subscribe('/topic/users', function(message) {
+                    const userData = JSON.parse(message.body);
+                    updateOnlineUsers(userData);
+                });
+                
+                // S'abonner aux indicateurs de frappe
+                stompClient.subscribe('/topic/typing', function(message) {
+                    const typingData = JSON.parse(message.body);
+                    updateTypingIndicator(typingData);
+                });
+                
+                // Notifier la connexion
+                stompClient.send('/app/user.join', {}, JSON.stringify({
+                    username: currentUser,
+                    type: 'JOIN'
+                }));
+                
+            }, function(error) {
+                updateConnectionStatus('disconnected');
+                console.error('Erreur de connexion:', error);
+                
+                // Tentative de reconnexion après 3 secondes
+                setTimeout(connectWebSocket, 3000);
+            });
+        }
+
+        // Gestion des messages
+        messageInput.addEventListener('input', function() {
+            const message = this.value.trim();
+            sendButton.disabled = message.length === 0;
+            
+            // Gestion de l'indicateur de frappe
+            if (message.length > 0 && !isTyping) {
+                isTyping = true;
+                sendTypingIndicator(true);
+            }
+            
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(() => {
+                if (isTyping) {
+                    isTyping = false;
+                    sendTypingIndicator(false);
+                }
+            }, 1000);
+        });
+
+        messageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !sendButton.disabled) {
+                sendMessage();
+            }
+        });
+
+        sendButton.addEventListener('click', sendMessage);
+
+        // Envoyer un message
+        function sendMessage() {
+            const content = messageInput.value.trim();
+            if (content && stompClient) {
+                const message = {
+                    username: currentUser,
+                    content: content,
+                    type: 'MESSAGE',
+                    timestamp: new Date()
+                };
+                
+                stompClient.send('/app/chat.send', {}, JSON.stringify(message));
+                messageInput.value = '';
+                sendButton.disabled = true;
+                
+                // Arrêter l'indicateur de frappe
+                if (isTyping) {
+                    isTyping = false;
+                    sendTypingIndicator(false);
+                }
+            }
+        }
+
+        // Envoyer l'indicateur de frappe
+        function sendTypingIndicator(typing) {
+            if (stompClient) {
+                stompClient.send('/app/typing', {}, JSON.stringify({
+                    username: currentUser,
+                    typing: typing
+                }));
+            }
+        }
+
+        // Afficher un message
+        function displayMessage(message) {
+            const messageDiv = document.createElement('div');
+            const isOwnMessage = message.username === currentUser;
+            
+            if (message.type === 'JOIN' || message.type === 'LEAVE') {
+                messageDiv.className = 'system-message';
+                messageDiv.textContent = message.type === 'JOIN' ? 
+                    `${message.username} a rejoint le chat` : 
+                    `${message.username} a quitté le chat`;
+            } else {
+                messageDiv.className = `message ${isOwnMessage ? 'own' : 'other'}`;
+                
+                const time = new Date(message.timestamp).toLocaleTimeString('fr-FR', {
+                    hour: '2-digit', 
+                    minute: '2-digit'
+                });
+                
+                messageDiv.innerHTML = `
+                    ${!isOwnMessage ? `<div class="message-header">${message.username}</div>` : ''}
+                    <div class="message-content">${escapeHtml(message.content)}</div>
+                    <div class="message-time">${time}</div>
+                `;
+            }
+            
+            messagesContainer.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        // Mettre à jour le nombre d'utilisateurs en ligne
+        function updateOnlineUsers(userData) {
+            onlineCount.textContent = userData.count || 0;
+        }
+
+        // Mettre à jour l'indicateur de frappe
+        function updateTypingIndicator(typingData) {
+            const typingUsersList = typingData.users.filter(user => user !== currentUser);
+            
+            if (typingUsersList.length > 0) {
+                let text = '';
+                if (typingUsersList.length === 1) {
+                    text = `${typingUsersList[0]} est en train d'écrire`;
+                } else if (typingUsersList.length === 2) {
+                    text = `${typingUsersList[0]} et ${typingUsersList[1]} sont en train d'écrire`;
+                } else {
+                    text = `${typingUsersList.length} personnes sont en train d'écrire`;
+                }
+                
+                typingUsers.textContent = text;
+                typingIndicator.style.display = 'flex';
+            } else {
+                typingIndicator.style.display = 'none';
+            }
+        }
+
+        // Mettre à jour le statut de connexion
+        function updateConnectionStatus(status) {
+            connectionStatus.className = `connection-status ${status}`;
+            
+            switch (status) {
+                case 'connected':
+                    connectionStatus.textContent = 'Connecté';
+                    break;
+                case 'disconnected':
+                    connectionStatus.textContent = 'Déconnecté';
+                    break;
+                case 'connecting':
+                    connectionStatus.textContent = 'Connexion...';
+                    break;
+            }
+        }
+
+        // Utilitaires
+        function scrollToBottom() {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Déconnexion propre
+        window.addEventListener('beforeunload', function() {
+            if (stompClient) {
+                stompClient.send('/app/user.leave', {}, JSON.stringify({
+                    username: currentUser,
+                    type: 'LEAVE'
+                }));
+                stompClient.disconnect();
+            }
+        });
+
+        // Initialisation
+        updateConnectionStatus('disconnected');
+    </script>
+</body>
+</html>
