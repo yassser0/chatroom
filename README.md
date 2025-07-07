@@ -28,29 +28,7 @@ Ce projet est une application de **chat public anonyme en temps réel**, dévelo
 
 ## 📁 Structure du projet
 
-chatroom/
-├── src/
-│   ├── main/
-│   │   ├── java/com/chatroom/
-│   │   │   ├── ChatroomApplication.java
-│   │   │   ├── controller/
-│   │   │   │   └── ChatController.java
-│   │   │   ├── model/
-│   │   │   │   └── Message.java
-│   │   │   ├── repository/
-│   │   │   │   └── MessageRepository.java
-│   │   │   ├── payload/
-│   │   │   │   └── TypingPayload.java
-│   │   │   └── service/
-│   │   │       └── OnlineUserService.java
-│   │   └── resources/
-│   │       ├── templates/
-│   │       │   └── chatroom.html
-│   │       ├── static/css/
-│   │       │   └── chatroom.css
-│   │       └── application.properties
-├── pom.xml
-
+![image](https://github.com/user-attachments/assets/21dca80b-549f-429c-9504-1fdf6fd87a3f)
 
 
 ## ⚙️ Configuration MongoDB
